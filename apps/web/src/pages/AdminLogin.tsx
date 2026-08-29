@@ -3,36 +3,69 @@ import { useState } from 'react';
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login attempt:', email);
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Invalid email or password');
+      }
+
+      const data = await res.json();
+      
+      // 1. Ajiye token
+      localStorage.setItem('admin_token', data.token);
+      
+      // 2. Yi redirect zuwa admin dashboard
+      window.location.href = '/admin/dashboard';
+      
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50">
-      <form onSubmit={handleSubmit} className="w-96 space-y-4 p-8 border rounded-lg bg-white">
-        <h1 className="text-2xl font-bold">Admin Login</h1>
-        <input 
-          type="email" 
-          placeholder="Email" 
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border p-2 rounded"
-          required
-        />
-        <input 
-          type="password" 
-          placeholder="Password" 
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border p-2 rounded"
-          required
-        />
-        <button type="submit" className="w-full bg-black text-white p-2 rounded">
-          Login
+    <div style={{ maxWidth: 400, margin: '100px auto', padding: 20 }}>
+      <h1>Admin Login</h1>
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: 12 }}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+            style={{ width: '100%', padding: 8 }}
+          />
+        </div>
+        <div style={{ marginBottom: 12 }}>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+            style={{ width: '100%', padding: 8 }}
+          />
+        </div>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+        <button type="submit" disabled={loading} style={{ width: '100%', padding: 10 }}>
+          {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
-    </main>
+    </div>
   );
 }
