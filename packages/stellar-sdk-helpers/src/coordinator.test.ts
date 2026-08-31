@@ -15,6 +15,7 @@ import {
   buildCoordinatorDepositTx,
   buildCoordinatorWithdrawTx,
   fetchCoordinatorPosition,
+  fetchVaultAdmin,
 } from "./coordinator";
 import { prepareSorobanTx, simulateView } from "./tx";
 
@@ -267,5 +268,30 @@ describe("fetchCoordinatorPosition", () => {
 
     expect(positions[0]!.deposited).toBeGreaterThan(0);
     expect(positions[0]!.earned).toBe(0);
+  });
+});
+
+describe("fetchVaultAdmin", () => {
+  it("returns the admin address from get_admin", async () => {
+    const ADMIN = "GCKFBEIYTKP6RCZNVPH73XL7XFJVSFAKQR4E4XQD4PGGPCCQTVMWXW6D";
+    vi.mocked(simulateView).mockResolvedValue(ADMIN as never);
+
+    const admin = await fetchVaultAdmin({ contractId: CONTRACT_ID, network });
+
+    expect(admin).toBe(ADMIN);
+    expect(simulateView).toHaveBeenCalledWith(
+      expect.anything(),
+      CONTRACT_ID,
+      network.passphrase,
+      "get_admin"
+    );
+  });
+
+  it("throws when get_admin doesn't resolve to a string", async () => {
+    vi.mocked(simulateView).mockResolvedValue(null as never);
+
+    await expect(
+      fetchVaultAdmin({ contractId: CONTRACT_ID, network })
+    ).rejects.toThrow(/unexpected response shape/);
   });
 });

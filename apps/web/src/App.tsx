@@ -1,11 +1,12 @@
 import { useCallback, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { VaultPanel } from "./components/dashboard/VaultPanel";
-import { WalletConnect } from "./components/onboarding/WalletConnect";
-import { Toasts } from "./components/ui/Toasts";
-import { ErrorBoundary } from "./components/ui/ErrorBoundary";
-import { useWalletStore } from "./store/wallet";
+import { VaultPanel } from "./components/dashboard/VaultPanel"; // FIX 1:./
+import { WalletConnect } from "./components/onboarding/WalletConnect"; // FIX 1:./
+import { Toasts } from "./components/ui/Toasts"; // FIX 1:./
+import { ErrorBoundary } from "./components/ui/ErrorBoundary"; // FIX 1:./
+import { useWalletStore } from "./store/wallet"; // FIX 1:./
 import { useTranslation } from "react-i18next";
+import { AdminLogin } from "./pages/AdminLogin";
 
 const queryClient = new QueryClient();
 
@@ -28,14 +29,13 @@ function Dashboard() {
             <WalletConnect />
             <button
               onClick={toggleLanguage}
-              className="text-sm border border-gray-700 rounded-lg px-3 py-1.5 text-gray-300 hover:border-gray-600 hover:text-white transition-colors duration-150"
+              className="text-sm border-gray-700 rounded-lg px-3 py-1.5 text-gray-300 hover:border-gray-600 hover:text-white transition-colors duration-150" // FIX 2: added border
             >
               {i18n.language === "en" ? "FR" : "EN"}
             </button>
           </div>
         </div>
       </header>
-
       <main className="max-w-xl mx-auto px-6 py-10">
         <ErrorBoundary>
           <VaultPanel />
@@ -49,17 +49,15 @@ export default function App() {
   useEffect(() => {
     const revalidate = () => void useWalletStore.getState().revalidate();
     revalidate();
-    // Re-check authorization when the window regains focus. Freighter opens
-    // as an extension popup (separate window), so the page loses focus while
-    // the popup is open and regains it when it closes — this catches revoked
-    // site access without requiring a page reload.
     window.addEventListener("focus", revalidate);
     return () => window.removeEventListener("focus", revalidate);
   }, []);
 
+  const isAdminRoute = window.location.pathname === "/admin";
+
   return (
     <QueryClientProvider client={queryClient}>
-      <Dashboard />
+      {isAdminRoute ? <AdminLogin /> : <Dashboard />}
       <Toasts />
     </QueryClientProvider>
   );

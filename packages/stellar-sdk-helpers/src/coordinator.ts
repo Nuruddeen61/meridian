@@ -127,3 +127,25 @@ export async function fetchCoordinatorPosition(
     entryTime: toBigInt(entryTimeRaw),
   });
 }
+
+/**
+ * Read the coordinator vault's current admin address via read-only
+ * simulation. Used to gate the admin dashboard: a connected wallet is
+ * authorized only if its public key matches this address.
+ */
+export async function fetchVaultAdmin(
+  config: CoordinatorConfig
+): Promise<string> {
+  const { contractId, network } = config;
+  const server = getRpcServer(network.rpcUrl, 12_000);
+  const admin = await simulateView(
+    server,
+    contractId,
+    network.passphrase,
+    "get_admin"
+  );
+  if (typeof admin !== "string") {
+    throw new Error("get_admin: unexpected response shape");
+  }
+  return admin;
+}
