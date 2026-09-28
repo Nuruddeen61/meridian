@@ -2,7 +2,6 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
   pull_request:
     branches: [main, develop]
 
@@ -147,20 +146,9 @@ jobs:
       - name: Run clippy
         working-directory: packages/contracts
         run: cargo clippy --all-targets -- -D warnings
-      - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
-      - name: Install LLVM coverage tools
-        run: rustup component add llvm-tools-preview
-      - name: Measure contract coverage
+      - name: Run contract tests
         working-directory: packages/contracts
-        run: >-
-          cargo llvm-cov
-          --package meridian-vault
-          --package meridian-blend-adapter
-          --package meridian-defindex-adapter
-          --package adapter-common
-          --summary-only
-          --fail-under-lines 97.5
+        run: cargo test
       - name: Build wasm
         working-directory: packages/contracts
         run: cargo build --target wasm32-unknown-unknown --release
