@@ -3,8 +3,6 @@ name: CI
 on:
   push:
   pull_request:
-    branches: [main, develop]
-
 jobs:
   lint-typecheck:
     name: Lint & Typecheck
